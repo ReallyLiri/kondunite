@@ -66,12 +66,12 @@ Some hints could be injected to the Kubernetes manifests to utilize the power of
 
 Noe the hints will make the manifests syntactically invalid by Kubernetes definitions and must be parse by this tool to be applicable.
 
-### targets_only
+### targetsOnly
 
 Specify at manifest top level that it only targets a specific platform.
 
 ```yaml
-targets_only: <target>
+targetsOnly: <target>
 ```
 
 For example:
@@ -79,7 +79,7 @@ For example:
 ```yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
-targets_only: gke
+targetsOnly: gke
 metadata:
   name: pvc
 spec:

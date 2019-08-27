@@ -116,8 +116,8 @@ def cli(no_recurse, target, img, repl_base, output, repl, repl_registry, directo
                     manifests_deps[dependent_on].add(filename)
                 del manifest_content['dependencies']
 
-            modify_targeted_nodes(manifest_content['spec'], target)
-            for image in collect_and_set_images(manifest_content['spec'], tags_by_image):
+            modify_targeted_nodes(manifest_content, target)
+            for image in collect_and_set_images(manifest_content, tags_by_image):
                 collected_images.add(image)
 
             stream = StringIO()
