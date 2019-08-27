@@ -83,7 +83,7 @@ def build_repl_images_section(collected_images, repl_registries):
 @click.option('--repl-registry', multiple=True, required=False, help="One or more docker registries defined in your Replicated settings in the form of endpoint:name, i.e gcr.io/company", type=str)
 @click.argument('directory', type=str)
 def cli(no_recurse, target, img, repl_base, output, repl, repl_registry, directory):
-    manifests_contents = dict()
+    manifests_contents = defaultdict(list)
     collected_images = set()
     manifests_deps = defaultdict(set)
     tags_by_image = {image.split(":")[0]: image.split(":")[1] for image in img}
@@ -122,12 +122,13 @@ def cli(no_recurse, target, img, repl_base, output, repl, repl_registry, directo
 
             stream = StringIO()
             yaml.dump(manifest_content, stream)
-            manifests_contents[filename] = stream.getvalue()
+            manifests_contents[filename].append(stream.getvalue())
 
     final_collection = []
     for manifest_file in toposort_flatten(manifests_deps):
         if manifest_file in manifests_contents:
-            final_collection.append(manifests_contents[manifest_file].strip())
+            for content in manifests_contents[manifest_file]:
+                final_collection.append(content.strip())
 
     print(f"Writing output to {output}")
     with(open(output, 'w')) as f:
@@ -142,4 +143,4 @@ def cli(no_recurse, target, img, repl_base, output, repl, repl_registry, directo
 
 
 if __name__ == '__main__':
-    pass
+    cli('--target gke -i "gcr.io/apiiro/lim/api:$LIM_API_SHA" -i "gcr.io/apiiro/lim/feature-extractor-java:$LIM_FEATURE_EXTRACTOR_JAVA_SHA" -i "gcr.io/apiiro/lim/git-listener:$LIM_GIT_LISTENER_SHA" -o gke.yaml /Users/liris/apiiro/lim/k8s'.split(' '))
