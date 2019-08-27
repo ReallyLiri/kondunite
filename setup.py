@@ -8,7 +8,7 @@ setup(
     description="Kubernetes Conditional Manifests Unifier",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    version='0.1.1',
+    version='0.1.2',
     author='apiiro',
     url='https://github.com/apiiro/kondunite',
     author_email='liri@apiiro.com',
