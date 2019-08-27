@@ -115,7 +115,7 @@ spec:
       storage: 17Gi
 ```
 
-### `-<target>` suffixes
+### `-<target>` yaml node suffix
 
 If any node in a manifest is named with a `-<target>` suffix, it will be filtered out if the target mismatches the requested target.
 
@@ -178,6 +178,8 @@ spec:
             - name: NEO_PASSWORD
               value: 'password'
 ```
+
+(Note `env` node)
 
 ## Dev Setup
 
