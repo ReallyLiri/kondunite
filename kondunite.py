@@ -106,10 +106,10 @@ def cli(no_recurse, target, img, repl_base, output, repl, repl_registry, directo
         manifests_deps[filename]  # just to verify there is an entry for every filename
         for manifest_content in yaml_contents(manifest_file):
 
-            if 'targets_only' in manifest_content:
-                if manifest_content['targets_only'] != target:
+            if 'targetsOnly' in manifest_content:
+                if manifest_content['targetsOnly'] != target:
                     continue
-                del manifest_content['targets_only']
+                del manifest_content['targetsOnly']
 
             if 'dependencies' in manifest_content:
                 for dependent_on in manifest_content['dependencies']:
