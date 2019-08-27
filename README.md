@@ -6,6 +6,15 @@ Currently only yaml manifests are supported.
 
 Tool is written and tested only in Python 3.7
 
+## Install
+
+You can run the following out of any venv. Just make sure you separately installed the stuff in requirements.txt outside the venv as well.
+
+```bash
+pip install -r requirements.txt
+pip install --index-url https://test.pypi.org/simple/ --no-deps --upgrade kondunite
+```
+
 ## Usage
 
 Terminology - 
@@ -192,3 +201,26 @@ And activate it: `source dev.sh`
 Install requirements: `pip install -r requirements.txt`
 
 Install package: `pip install --editable .`
+
+## Publish
+
+Tool is published to https://test.pypi.org/project/kondunite/
+
+Our pypi account username is `apiiro`.
+
+Encrypted password:
+
+`CiQAY54wGm+6iUvF0ekFNtUXkUEyyRkf6huqJXjQsBbGUf7DM+gSOQDTHfdAONBEjRI1noSNpRPvXsuTGWFW1Cm6Lj1rN7zBnD4zrDnBhozc4ao0S5HDdDMvl/CV4nG6aQ==`
+
+You could locally decrypt it with `gdec <password> pypi pypi-password`.
+
+Steps to publish a new release:
+
+```bash
+pip install setuptools wheel twine
+rm -rf dist/*
+python setup.py bdist_wheel
+twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u apiiro
+```
+
+You'll be prompted for password.
