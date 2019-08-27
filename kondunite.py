@@ -1,0 +1,145 @@
+import click
+import ruamel.yaml
+import glob
+from pathlib import Path
+from toposort import toposort_flatten
+from collections import defaultdict
+from io import StringIO
+
+yaml = ruamel.yaml.YAML()
+yaml.indent(mapping=2, sequence=4, offset=2)
+
+
+def yaml_contents(path):
+    with open(path, 'r') as f:
+        content = f.read()
+        resources = content.split('---')
+        for resource in resources:
+            resource = resource.strip()
+            resource_content = yaml.load(StringIO(resource))
+            yield resource_content
+
+
+def iterate_yaml_tree(node, callback):
+    for name, sub_node in node.copy().items():
+        callback(node, name, sub_node)
+        if isinstance(sub_node, dict):
+            iterate_yaml_tree(sub_node, callback)
+        elif isinstance(sub_node, list):
+            for item in sub_node:
+                if isinstance(item, dict):
+                    iterate_yaml_tree(item, callback)
+
+
+def modify_targeted_nodes(node, target):
+    def callback(parent, node_name, node_content):
+        if '-' in node_name:
+            node_target = node_name.split('-')[-1]
+            del parent[node_name]
+            if node_target == target:
+                parent['-'.join(node_name.split('-')[:-1])] = node_content
+
+    iterate_yaml_tree(node, callback)
+
+
+def collect_and_set_images(node, tags_by_image):
+    collected_images = set()
+
+    def callback(parent, node_name, node_content):
+        if node_name == 'image':
+            image_name = node_content.split(":")[0]
+            if image_name in tags_by_image:
+                parent[node_name] = f"{image_name}:{tags_by_image[image_name]}"
+            collected_images.add(parent[node_name])
+
+    iterate_yaml_tree(node, callback)
+    return collected_images
+
+
+def build_repl_images_section(collected_images, repl_registries):
+    result = "\nimages:\n"
+    for image in collected_images:
+        image_name = image.split(":")[0]
+        tag = image.split(":")[1]
+        source = "public"
+        name = image_name
+        for registry in repl_registries:
+            if image_name.startswith(registry):
+                endpoint = registry.split("/")[0]
+                source = registry.split("/")[1]
+                name = image_name.split(f"{endpoint}/")[1]
+                break
+        result = f"{result}\n  - name: {name}\n    source: {source}\n    tag: \"{tag}\"\n"
+    return result
+
+
+@click.command()
+@click.option('--no-recurse', is_flag=True, required=False, help="Do not recurse manifests directory", default=False)
+@click.option('--target', '-t', required=True, help="Conditional target for unification", type=str)
+@click.option('--img', '-i', multiple=True, required=False, help="One or more tag to specific images, provide values in the forms of 'image-name:tag', i.e gcr.io/company/server:1.0", type=str)
+@click.option('--repl-base', '-b', required=False, help="Base replicated yaml definition (for '#kind: replicated' section), defaults to <directory>/replicated_base.yaml", type=str, default='')
+@click.option('--output', '-o', required=False, help="File to write the unified yaml to, defaults to <target>.yaml", type=str, default='')
+@click.option('--repl', '-r', is_flag=True, required=False, help="Plot output for a replicated release (with '# kind: scheduler-kubernetes' annotations)", default=False)
+@click.option('--repl-registry', multiple=True, required=False, help="One or more docker registries defined in your Replicated settings in the form of endpoint:name, i.e gcr.io/company", type=str)
+@click.argument('directory', type=str)
+def cli(no_recurse, target, img, repl_base, output, repl, repl_registry, directory):
+    manifests_contents = dict()
+    collected_images = set()
+    manifests_deps = defaultdict(set)
+    tags_by_image = {image.split(":")[0]: image.split(":")[1] for image in img}
+    is_repl = repl
+    repl_registries = repl_registry
+
+    if not output:
+        output = f"{target}.yaml"
+
+    if not repl_base:
+        repl_base = f"{directory}/replicated_base.yaml"
+
+    recursive = not no_recurse
+    manifests = glob.glob(f"{directory}/**/*.yaml" if recursive else f"{directory}/*.yaml", recursive=True)
+    for manifest_file in manifests:
+        if manifest_file == repl_base:
+            continue
+        print(f"Discovered file {manifest_file}")
+        filename = Path(manifest_file).name
+        manifests_deps[filename]  # just to verify there is an entry for every filename
+        for manifest_content in yaml_contents(manifest_file):
+
+            if 'targets_only' in manifest_content:
+                if manifest_content['targets_only'] != target:
+                    continue
+                del manifest_content['targets_only']
+
+            if 'dependencies' in manifest_content:
+                for dependent_on in manifest_content['dependencies']:
+                    manifests_deps[dependent_on].add(filename)
+                del manifest_content['dependencies']
+
+            modify_targeted_nodes(manifest_content['spec'], target)
+            for image in collect_and_set_images(manifest_content['spec'], tags_by_image):
+                collected_images.add(image)
+
+            stream = StringIO()
+            yaml.dump(manifest_content, stream)
+            manifests_contents[filename] = stream.getvalue()
+
+    final_collection = []
+    for manifest_file in toposort_flatten(manifests_deps):
+        if manifest_file in manifests_contents:
+            final_collection.append(manifests_contents[manifest_file].strip())
+
+    print(f"Writing output to {output}")
+    with(open(output, 'w')) as f:
+        if not is_repl:
+            f.write(f"\n---\n".join(final_collection))
+        else:
+            with open(repl_base, 'r') as base_f:
+                f.write(base_f.read())
+            f.write(build_repl_images_section(collected_images, repl_registries))
+            final_collection = [""] + final_collection
+            f.write(f"\n---\n# kind: scheduler-kubernetes\n".join(final_collection))
+
+
+if __name__ == '__main__':
+    pass
