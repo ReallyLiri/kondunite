@@ -3,7 +3,7 @@ steps:
   - name: 'gcr.io/apiiro/tools/twine:3.7'
     id: build wheel
     entrypoint: python
-    args: ['setup.py bdist_wheel']
+    args: ['setup.py', 'bdist_wheel']
 
   - name: 'gcr.io/apiiro/tools/twine:3.7'
     id: push to pypi if has a new version
