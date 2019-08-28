@@ -8,11 +8,9 @@ The tool is used to unify Kubernetes manifests targeting a specific release, by 
 
 Currently only yaml manifests are supported.
 
-Tool is written and tested only in Python 3.7
+*Tool is written and tested only in Python 3.7*
 
 ## Install
-
-You can run the following out of any venv. Just make sure you separately installed the stuff in requirements.txt outside the venv as well.
 
 ```bash
 pip install --upgrade kondunite
@@ -200,8 +198,6 @@ spec:
 (Note `env` node)
 
 ## Dev Setup
-
-Only Python3 is supported.
 
 Create a virtualenv: `python3 -m venv ./venv`
 
