@@ -1,9 +1,5 @@
 steps:
 
-  - name: 'gcr.io/apiiro/tools/pylint'
-    id: pylint
-    args: ['kondunite.py']
-
   - name: 'python:3.7-alpine'
     id: build wheel
     args: ['setup.py bdist_wheel']
