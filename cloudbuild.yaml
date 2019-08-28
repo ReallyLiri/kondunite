@@ -1,10 +1,10 @@
 steps:
 
-  - name: 'gcr.io/apiiro/tools/twine'
+  - name: 'gcr.io/apiiro/tools/twine:3.7'
     id: build wheel
     args: ['setup.py bdist_wheel']
 
-  - name: 'gcr.io/apiiro/tools/twine'
+  - name: 'gcr.io/apiiro/tools/twine:3.7'
     id: push to pypi if has a new version
     secretEnv: ['PYPI_PASSWORD']
     args:
@@ -12,7 +12,7 @@ steps:
       - |
         code_version=$(python setup.py --version) && \
         pip_version=$(yolk -V kondunite | cut -d" " -f2) && \
-        [ "$code_version" != "$pip_version" ] && twine upload dist/* -u apiiro -p $$PYPI_PASSWORD
+        ([ "$BRANCH_NAME" == "master" ] &&  ["$code_version" != "$pip_version" ] && twine upload dist/* -u apiiro -p $$PYPI_PASSWORD || echo "No new version")
 
 secrets:
   - kmsKeyName: projects/apiiro/locations/global/keyRings/pypi/cryptoKeys/pypi-password
