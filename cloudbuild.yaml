@@ -13,7 +13,7 @@ steps:
       - |
         code_version=$(python setup.py --version) && \
         pip_version=$(yolk -V kondunite | cut -d" " -f2) && \
-        ([ "$BRANCH_NAME" == "master" ] &&  ["$code_version" != "$pip_version" ] && twine upload dist/* -u apiiro -p $$PYPI_PASSWORD || echo "No new version")
+        ([ "$BRANCH_NAME" == "master" ] &&  [ "$code_version" != "$pip_version" ] && twine upload dist/* -u apiiro -p $$PYPI_PASSWORD || echo "No new version")
 
 secrets:
   - kmsKeyName: projects/apiiro/locations/global/keyRings/pypi/cryptoKeys/pypi-password
