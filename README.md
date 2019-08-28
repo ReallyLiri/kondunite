@@ -1,6 +1,8 @@
-# kondunite - Kubernetes Conditional Manifests Unifier
+# kondunite
 
 [![PyPI version](https://badge.fury.io/py/kondunite.svg)](https://badge.fury.io/py/kondunite)
+
+**Kubernetes Conditional Manifests Unifier**
 
 The tool is used to unify Kubernetes manifests targeting a specific release, by using hints in the manifest files.
 
@@ -61,6 +63,8 @@ kondunite --target gke -i neo4j:lat3st -i gcr.io/apiiro/lim/api:1.0 ./k8s
 kondunite --target repl -i neo4j:late5t -i gcr.io/apiiro/lim/api:1.0 --repl --repl-registry gcr.io/apiiro ./k8s
 ```
 
+For more detailed examples see [examples](https://github.com/apiiro/kondunite/tree/master/examples).
+
 ## Manifests Hints
 
 Some hints could be injected to the Kubernetes manifests to utilize the power of this tool.
@@ -97,6 +101,8 @@ spec:
 Specify apply-time dependencies for the manifests, meaning which manifest should be applied before which. You can specify one or more.
 
 In case of a circular dependency a `toposort.CircularDependencyError` will be raised with a descriptive message.
+
+It is assumed that manifests in the same file should maintain their definition order.
 
 ```yaml
 dependencies:
@@ -204,3 +210,11 @@ And activate it: `source dev.sh`
 Install requirements: `pip install -r requirements.txt`
 
 Install package: `pip install --editable .`
+
+## Deployment
+
+Package is deployed using Google Cloud Build. See [cloudbuild.yaml](https://github.com/apiiro/kondunite/tree/master/cloudbuild.yaml).
+
+Any push to `master` branch will trigger a push to pypi if package version was increased.
+
+For a push to any branch, a sanity wheel build will run. 

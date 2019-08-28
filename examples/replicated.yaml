@@ -1,0 +1,224 @@
+---
+# kind: replicated
+
+replicated_api_version: 2.9.2
+name: "Wordpress-Demo"
+
+properties:
+  app_url: http://{{repl ConfigOption "hostname" }}
+  console_title: "Wordpress-Demo"
+  logo_url: "https://s.w.org/style/images/about/WordPress-logotype-wmark.png"
+
+host_requirements:
+  replicated_version: ">=2.9.2"
+
+kubernetes:
+  requirements:
+    total_cores: "2"
+    total_memory: 8GB
+  shared_fs:
+    enabled: true
+
+cmds:
+  - name: gen_mysql_password
+    cmd: random
+    args:
+      - "16"
+
+config:
+
+  - name: hostname
+    title: Hostname
+    description: Ensure this domain name is routable on your network.
+    items:
+      - name: hostname
+        title: Hostname
+      value: '{{repl ConsoleSetting "tls.hostname" }}'
+        type: text
+        test_proc:
+          display_name: Check DNS
+          command: resolve_host
+
+  - name: generated
+    title: Generetad passwords
+    items:
+      - name: mysql_password
+        title: MYSql-Password
+        type: password
+        hidden: true
+        value_cmd:
+          name: gen_mysql_password
+          value_at: 0
+
+images:
+
+  - name: mysql
+    source: public
+    tag: "5.7"
+
+  - name: wordpress
+    source: public
+    tag: "4.8-apache"
+
+---
+# kind: scheduler-kubernetes
+apiVersion: ceph.rook.io/v1beta1
+kind: Filesystem
+metadata:
+  name: rook-shared-fs
+  namespace: rook-ceph
+spec:
+  metadataPool:
+    replicated:
+      size: 1
+  dataPools:
+    - replicated:
+        size: 1
+  metadataServer:
+    activeCount: 1
+    activeStandby: true
+---
+# kind: scheduler-kubernetes
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-mysql
+  labels:
+    app: wordpress
+spec:
+  ports:
+    - port: 3306
+  selector:
+    app: wordpress
+    tier: mysql
+  clusterIP: None
+---
+# kind: scheduler-kubernetes
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql
+type: Opaque
+data:
+  mysql-pass: '{{repl ConfigOption "mysql_password" | Base64Encode}}'
+---
+# kind: scheduler-kubernetes
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress-mysql
+  labels:
+    app: wordpress
+spec:
+  selector:
+    matchLabels:
+      app: wordpress
+      tier: mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: wordpress
+        tier: mysql
+    spec:
+      containers:
+        - image: mysql:5.7
+          name: mysql
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-pass
+                  key: password
+          ports:
+            - containerPort: 3306
+              name: mysql
+          volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-persistent-storage
+          flexVolume:
+            driver: ceph.rook.io/rook
+            fsType: ceph
+            options:
+              fsName: rook-shared-fs
+              clusterNamespace: rook-ceph
+              path: /mysql
+---
+# kind: scheduler-kubernetes
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress
+  labels:
+    app: wordpress
+spec:
+  ports:
+    - port: 80
+  selector:
+    app: wordpress
+    tier: frontend
+  type: ClusterIP
+---
+# kind: scheduler-kubernetes
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: wordpress
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /
+            backend:
+              serviceName: wordpress
+              servicePort: 80
+---
+# kind: scheduler-kubernetes
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress
+  labels:
+    app: wordpress
+spec:
+  selector:
+    matchLabels:
+      app: wordpress
+      tier: frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: wordpress
+        tier: frontend
+    spec:
+      containers:
+        - image: wordpress:4.8-apache
+          name: wordpress
+          env:
+            - name: WORDPRESS_DB_HOST
+              value: wordpress-mysql
+            - name: WORDPRESS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-pass
+                  key: password
+          ports:
+            - containerPort: 80
+              name: wordpress
+          volumeMounts:
+            - name: wordpress-persistent-storage
+              mountPath: /var/www/html
+      volumes:
+        - name: wordpress-persistent-storage
+          flexVolume:
+            driver: ceph.rook.io/rook
+            fsType: ceph
+            options:
+              fsName: rook-shared-fs
+              clusterNamespace: rook-ceph
+              path: /wordpress

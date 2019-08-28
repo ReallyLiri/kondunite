@@ -108,6 +108,9 @@ def cli(no_recurse, target, img, repl_base, output, repl, repl_registry, directo
         filename = Path(manifest_file).name
         manifests_deps[filename]  # just to verify there is an entry for every filename
         for manifest_content in yaml_contents(manifest_file):
+            if not manifest_content:
+                print(f"A manifest at {manifest_file} is an invalid yaml. Skipping.")
+                continue
 
             if 'targetsOnly' in manifest_content:
                 if manifest_content['targetsOnly'] != target:
@@ -116,7 +119,7 @@ def cli(no_recurse, target, img, repl_base, output, repl, repl_registry, directo
 
             if 'dependencies' in manifest_content:
                 for dependent_on in manifest_content['dependencies']:
-                    manifests_deps[dependent_on].add(filename)
+                    manifests_deps[filename].add(dependent_on)
                 del manifest_content['dependencies']
 
             modify_targeted_nodes(manifest_content, target)
@@ -128,6 +131,7 @@ def cli(no_recurse, target, img, repl_base, output, repl, repl_registry, directo
             manifests_contents[filename].append(stream.getvalue())
 
     final_collection = []
+    print(manifests_deps)
     for manifest_file in toposort_flatten(manifests_deps):
         if manifest_file in manifests_contents:
             for content in manifests_contents[manifest_file]:

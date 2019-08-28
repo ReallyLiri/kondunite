@@ -1,0 +1,16 @@
+apiVersion: ceph.rook.io/v1beta1
+targetsOnly: repl
+kind: Filesystem
+metadata:
+  name: rook-shared-fs
+  namespace: rook-ceph
+spec:
+  metadataPool:
+    replicated:
+      size: 1
+  dataPools:
+  - replicated:
+      size: 1
+  metadataServer:
+    activeCount: 1
+    activeStandby: true
