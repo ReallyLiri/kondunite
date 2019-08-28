@@ -1,0 +1,24 @@
+steps:
+
+  - name: 'gcr.io/apiiro/tools/pylint'
+    id: pylint
+    args: ['kondunite.py']
+
+  - name: 'python:3.7-alpine'
+    id: build wheel
+    args: ['setup.py bdist_wheel']
+
+  - name: 'gcr.io/apiiro/tools/twine'
+    id: push to pypi if has a new version
+    secretEnv: ['PYPI_PASSWORD']
+    args:
+      - '-c'
+      - |
+        code_version=$(python setup.py --version) && \
+        pip_version=$(yolk -V kondunite | cut -d" " -f2) && \
+        [ "$code_version" != "$pip_version" ] && twine upload dist/* -u apiiro -p $$PYPI_PASSWORD
+
+secrets:
+  - kmsKeyName: projects/apiiro/locations/global/keyRings/pypi/cryptoKeys/pypi-password
+    secretEnv:
+      PYPI_PASSWORD: 'CiQAY54wGm+6iUvF0ekFNtUXkUEyyRkf6huqJXjQsBbGUf7DM+gSOQDTHfdAONBEjRI1noSNpRPvXsuTGWFW1Cm6Lj1rN7zBnD4zrDnBhozc4ao0S5HDdDMvl/CV4nG6aQ=='

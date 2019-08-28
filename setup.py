@@ -1,5 +1,7 @@
 from setuptools import setup, find_packages
 
+__version__ = '0.1.6'
+
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
@@ -8,7 +10,7 @@ setup(
     description="Kubernetes Conditional Manifests Unifier",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    version='0.1.4',
+    version=__version__,
     author='apiiro',
     url='https://github.com/apiiro/kondunite',
     author_email='liri@apiiro.com',

@@ -33,6 +33,9 @@ def iterate_yaml_tree(node, callback):
 
 def modify_targeted_nodes(node, target):
     def callback(parent, node_name, node_content):
+        if not isinstance(node_content, dict) and not isinstance(node_content, list):
+            # we don't support this feature on low levels nodes
+            return
         if '-' in node_name:
             node_target = node_name.split('-')[-1]
             del parent[node_name]
@@ -143,4 +146,4 @@ def cli(no_recurse, target, img, repl_base, output, repl, repl_registry, directo
 
 
 if __name__ == '__main__':
-    cli('--target gke -i "gcr.io/apiiro/lim/api:$LIM_API_SHA" -i "gcr.io/apiiro/lim/feature-extractor-java:$LIM_FEATURE_EXTRACTOR_JAVA_SHA" -i "gcr.io/apiiro/lim/git-listener:$LIM_GIT_LISTENER_SHA" -o gke.yaml /Users/liris/apiiro/lim/k8s'.split(' '))
+    pass

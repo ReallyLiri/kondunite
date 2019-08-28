@@ -11,8 +11,7 @@ Tool is written and tested only in Python 3.7
 You can run the following out of any venv. Just make sure you separately installed the stuff in requirements.txt outside the venv as well.
 
 ```bash
-pip install -r requirements.txt
-pip install --index-url https://test.pypi.org/simple/ --no-deps --upgrade kondunite
+pip install --upgrade kondunite
 ```
 
 ## Usage
@@ -128,7 +127,8 @@ spec:
 
 If any node in a manifest is named with a `-<target>` suffix, it will be filtered out if the target mismatches the requested target.
 
-Since Kubernetes manifests use only camel casing, a dash character should not appear in any node that does not intend to hint on a target.
+The feature is only supported for dict or list nodes, meaning not for low level nodes such as strings etc.
+Since Kubernetes manifests use only camel casing, a dash character should not appear in any (non low level) node that does not intend to hint on a target.
 
 This hint act similar to `targets_only` hint, however it applies only to a node and not to a whole manifest.
 
@@ -151,12 +151,13 @@ spec:
     - ReadWriteMany
   storageClassName: ""
   resources:
-    requests:
-      storage-gke: 17Gi
-      storage-repl: 17Gi
+    requests-gke:
+      storage: 17Gi
+    requests-repl:
+      storage: 7Gi
 ```
 
-(Note `accessMode` and `storage` nodes)
+(Note `accessMode` and `requests` nodes)
 
 ```yaml
 apiVersion: apps/v1
@@ -201,26 +202,3 @@ And activate it: `source dev.sh`
 Install requirements: `pip install -r requirements.txt`
 
 Install package: `pip install --editable .`
-
-## Publish
-
-Tool is published to https://test.pypi.org/project/kondunite/
-
-Our pypi account username is `apiiro`.
-
-Encrypted password:
-
-`CiQAY54wGm+6iUvF0ekFNtUXkUEyyRkf6huqJXjQsBbGUf7DM+gSOQDTHfdAONBEjRI1noSNpRPvXsuTGWFW1Cm6Lj1rN7zBnD4zrDnBhozc4ao0S5HDdDMvl/CV4nG6aQ==`
-
-You could locally decrypt it with `gdec <password> pypi pypi-password`.
-
-Steps to publish a new release:
-
-```bash
-pip install setuptools wheel twine
-rm -rf dist/*
-python setup.py bdist_wheel
-twine upload --repository-url https://test.pypi.org/legacy/ dist/* -u apiiro
-```
-
-You'll be prompted for password.
