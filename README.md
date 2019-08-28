@@ -1,5 +1,7 @@
 # kondunite - Kubernetes Conditional Manifests Unifier
 
+[![PyPI version](https://badge.fury.io/py/kondunite.svg)](https://badge.fury.io/py/kondunite)
+
 The tool is used to unify Kubernetes manifests targeting a specific release, by using hints in the manifest files.
 
 Currently only yaml manifests are supported.
