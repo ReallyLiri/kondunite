@@ -57,11 +57,11 @@ Currently all filenames across all subdirectories must be unique. Only one of th
 ### Examples
 
 ```bash
-kondunite --target gke -i neo4j:lat3st -i gcr.io/apiiro/lim/api:1.0 ./k8s
-kondunite --target repl -i neo4j:late5t -i gcr.io/apiiro/lim/api:1.0 --repl --repl-registry gcr.io/apiiro ./k8s
+kondunite --target gke -i neo4j:lat3st -i gcr.io/kondunite/test:1.0 ./k8s
+kondunite --target repl -i neo4j:late5t -i gcr.io/kondunite/test:1.0 --repl --repl-registry gcr.io/kondunite ./k8s
 ```
 
-For more detailed examples see [examples](https://github.com/apiiro/kondunite/tree/master/examples).
+For more detailed examples see [examples](https://github.com/reallyliri/kondunite/tree/master/examples).
 
 ## Manifests Hints
 
@@ -209,7 +209,7 @@ Install package: `pip install --editable .`
 
 ## Deployment
 
-Package is deployed using Google Cloud Build. See [cloudbuild.yaml](https://github.com/apiiro/kondunite/tree/master/cloudbuild.yaml).
+Package is deployed using Google Cloud Build. See [cloudbuild.yaml](https://github.com/reallyliri/kondunite/tree/master/cloudbuild.yaml).
 
 Any push to `master` branch will trigger a push to pypi if package version was increased.
 

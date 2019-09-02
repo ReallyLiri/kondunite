@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-__version__ = '0.1.8'
+__version__ = '0.1.9'
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -11,9 +11,9 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     version=__version__,
-    author='apiiro',
-    url='https://github.com/apiiro/kondunite',
-    author_email='liri@apiiro.com',
+    author='ReallyLiri',
+    url='https://github.com/ReallyLiri/kondunite',
+    author_email='reallyliri@gmail.com',
     keywords='k8s kubernetes kustomize yaml yml manifest gke repl replicated',
     py_modules=['kondunite'],
     install_requires=[

@@ -1,11 +1,11 @@
 steps:
 
-  - name: 'gcr.io/apiiro/tools/twine:3.7'
+  - name: 'gcr.io/kondunite/twine:3.7'
     id: build wheel
     entrypoint: python
     args: ['setup.py', 'bdist_wheel']
 
-  - name: 'gcr.io/apiiro/tools/twine:3.7'
+  - name: 'gcr.io/kondunite/twine:3.7'
     id: push to pypi if has a new version
     secretEnv: ['PYPI_PASSWORD']
     args:
@@ -13,9 +13,9 @@ steps:
       - |
         code_version=$(python setup.py --version) && \
         pip_version=$(yolk -V kondunite | cut -d" " -f2) && \
-        ([ "$BRANCH_NAME" == "master" ] &&  [ "$code_version" != "$pip_version" ] && twine upload dist/* -u apiiro -p $$PYPI_PASSWORD || echo "No new version")
+        ([ "$BRANCH_NAME" == "master" ] &&  [ "$code_version" != "$pip_version" ] && twine upload dist/* -u ReallyLiri -p $$PYPI_PASSWORD || echo "No new version")
 
 secrets:
-  - kmsKeyName: projects/apiiro/locations/global/keyRings/pypi/cryptoKeys/pypi-password
+  - kmsKeyName: projects/kondunite/locations/global/keyRings/pypi/cryptoKeys/pypi-password
     secretEnv:
-      PYPI_PASSWORD: 'CiQAY54wGm+6iUvF0ekFNtUXkUEyyRkf6huqJXjQsBbGUf7DM+gSOQDTHfdAONBEjRI1noSNpRPvXsuTGWFW1Cm6Lj1rN7zBnD4zrDnBhozc4ao0S5HDdDMvl/CV4nG6aQ=='
+      PYPI_PASSWORD: 'CiQAaL4nMdZw2MOm+Mie/y3EIDrpa4mhCINsw6RJHqUOcOgZtoMSNgBqXM8CxH1P45tXCTjaX4kRj/zBrfdtYqHrV8WZmY5e8EZp8wEB5EZ2zBPhO5h4cMLi9CaKgg=='
