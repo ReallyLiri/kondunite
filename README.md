@@ -213,4 +213,5 @@ Package is deployed using Google Cloud Build. See [cloudbuild.yaml](https://gith
 
 Any push to `master` branch will trigger a push to pypi if package version was increased.
 
-For a push to any branch, a sanity wheel build will run. 
+For a push to any branch, a sanity wheel build will run.
+
