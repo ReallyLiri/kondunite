@@ -1,10 +1,11 @@
-import click
-import ruamel.yaml
 import glob
-from pathlib import Path
-from toposort import toposort_flatten
 from collections import defaultdict
 from io import StringIO
+from pathlib import Path
+
+import click
+import ruamel.yaml
+from toposort import toposort_flatten
 
 yaml = ruamel.yaml.YAML()
 yaml.indent(mapping=2, sequence=4, offset=2)
@@ -62,8 +63,9 @@ def collect_and_set_images(node, tags_by_image):
 def build_repl_images_section(collected_images, repl_registries):
     result = "\nimages:\n"
     for image in collected_images:
-        image_name = image.split(":")[0]
-        tag = image.split(":")[1]
+        image_parts = image.split(":")
+        image_name = image_parts[0]
+        tag = image_parts[1] if len(image_parts) > 1 else "latest"
         source = "public"
         name = image_name
         for registry in repl_registries:
