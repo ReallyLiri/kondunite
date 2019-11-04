@@ -9,6 +9,7 @@ from toposort import toposort_flatten
 
 yaml = ruamel.yaml.YAML()
 yaml.indent(mapping=2, sequence=4, offset=2)
+yaml.width = 4096  # or some other big enough value to prevent line-wrap
 
 
 def yaml_contents(path):
@@ -124,12 +125,19 @@ def cli(no_recurse, target, img, repl_base, output, repl, repl_registry, directo
                     manifests_deps[filename].add(dependent_on)
                 del manifest_content['dependencies']
 
+            if 'replKind' in manifest_content:
+                replKind = manifest_content['replKind']
+                del manifest_content['replKind']
+            else:
+                replKind = "scheduler-kubernetes"
+
             modify_targeted_nodes(manifest_content, target)
             for image in collect_and_set_images(manifest_content, tags_by_image):
                 collected_images.add(image)
 
             stream = StringIO()
             yaml.dump(manifest_content, stream)
+            manifests_contents[filename].append(f"---\n# kind: {replKind}\n")
             manifests_contents[filename].append(stream.getvalue())
 
     final_collection = []
@@ -148,7 +156,7 @@ def cli(no_recurse, target, img, repl_base, output, repl, repl_registry, directo
                 f.write(base_f.read())
             f.write(build_repl_images_section(collected_images, repl_registries))
             final_collection = [""] + final_collection
-            f.write(f"\n---\n# kind: scheduler-kubernetes\n".join(final_collection))
+            f.write("\n".join(final_collection))
 
 
 if __name__ == '__main__':

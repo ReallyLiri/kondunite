@@ -197,6 +197,33 @@ spec:
 
 (Note `env` node)
 
+### replKind
+
+Allows a manifest to declare a Replicated kind that is not the default - `scheduler-kubernetes`.
+
+For example:
+
+```yaml
+apiVersion: v1
+kind: Pod
+targetsOnly: repl
+replKind: preflight-kubernetes
+metadata:
+  name: disk-space-checker
+spec:
+  containers:
+  - name: tester
+    image: busybox
+    command: ["sh", "-c", "[ \"$(df -k /host/var | tail -1 | xargs | cut -d' ' -f2)\" -gt \"80000000\" ]"]
+    volumeMounts:
+    - name: var
+      mountPath: /host/var
+  volumes:
+  - name: var
+    hostPath:
+      path: /var
+```
+
 ## Dev Setup
 
 Create a virtualenv: `python3 -m venv ./venv`
