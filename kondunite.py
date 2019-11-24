@@ -150,7 +150,7 @@ def cli(no_recurse, target, img, repl_base, output, repl, repl_registry, directo
     print(f"Writing output to {output}")
     with(open(output, 'w')) as f:
         if not is_repl:
-            f.write(f"\n---\n".join(final_collection))
+            f.write(f"\n".join(final_collection))
         else:
             with open(repl_base, 'r') as base_f:
                 f.write(base_f.read())
