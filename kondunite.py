@@ -11,6 +11,12 @@ yaml = ruamel.yaml.YAML()
 yaml.indent(mapping=2, sequence=4, offset=2)
 yaml.width = 4096  # or some other big enough value to prevent line-wrap
 
+allowed_low_level_nodes = ['replicas']
+
+
+def is_allowed_node(node_name):
+    return '-' not in node_name or node_name.split('-')[0] in allowed_low_level_nodes
+
 
 def yaml_contents(path):
     with open(path, 'r') as f:
@@ -36,8 +42,9 @@ def iterate_yaml_tree(node, callback):
 def modify_targeted_nodes(node, target):
     def callback(parent, node_name, node_content):
         if not isinstance(node_content, dict) and not isinstance(node_content, list):
-            # we don't support this feature on low levels nodes
-            return
+            if not is_allowed_node(node_name):
+                # we don't support this feature on low levels nodes
+                return
         if '-' in node_name:
             node_target = node_name.split('-')[-1]
             del parent[node_name]
