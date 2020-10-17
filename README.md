@@ -133,7 +133,9 @@ spec:
 
 If any node in a manifest is named with a `-<target>` suffix, it will be filtered out if the target mismatches the requested target.
 
-The feature is only supported for dict or list nodes, meaning not for low level nodes such as strings etc.
+The feature is only supported for dict or list nodes, meaning not for low level nodes such as strings etc., except for specific allowed nodes like:
+* `replicas`
+
 Since Kubernetes manifests use only camel casing, a dash character should not appear in any (non low level) node that does not intend to hint on a target.
 
 This hint act similar to `targets_only` hint, however it applies only to a node and not to a whole manifest.
