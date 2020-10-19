@@ -14,6 +14,21 @@ yaml.width = 4096  # or some other big enough value to prevent line-wrap
 allowed_low_level_nodes = ['replicas']
 
 
+def fix_replica_templates(manifest):
+    """
+    Remove quotes from `replicas` value (allow templating in replicas)
+    """
+    fixed_manifest = []
+    for s in manifest.split('\n'):
+        fixed_line = s
+        if 'replicas:' in s:
+            key, val = s.split(':')
+            fixed_line = "{}:{}".format(key, val.replace('"', '').replace("'", ''))
+        fixed_manifest.append(fixed_line)
+
+    return "\n".join(fixed_manifest)
+
+
 def is_allowed_node(node_name):
     return '-' not in node_name or node_name.split('-')[0] in allowed_low_level_nodes
 
@@ -145,7 +160,7 @@ def cli(no_recurse, target, img, repl_base, output, repl, repl_registry, directo
             stream = StringIO()
             yaml.dump(manifest_content, stream)
             manifests_contents[filename].append(f"---\n# kind: {replKind}\n")
-            manifests_contents[filename].append(stream.getvalue())
+            manifests_contents[filename].append(fix_replica_templates(stream.getvalue()))
 
     final_collection = []
     print(manifests_deps)
